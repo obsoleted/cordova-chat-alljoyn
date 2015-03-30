@@ -37,6 +37,7 @@ chatApp.factory('chatService', function($q) {
           [
             "org.alljoyn.bus.samples.chat",
             "!Chat str>s",
+            "?DoSomething <s >s",
             null
           ],
           null
@@ -57,6 +58,11 @@ chatApp.factory('chatService', function($q) {
         chatBus = bus;
         console.log('Found bus and connected.');
 
+        var doSomethingHandler = function(msgForReply) {
+          console.log(JSON.stringify(msgForReply));
+          msgForReply.succcess('s', ["BoomShakalaka"]);
+        };
+
         var chatMessageHandler = function(response) {
           if (channelsModel.currentChannel == null) return;
           var message = new Message(response.arguments[0], response.sender);
@@ -67,6 +73,7 @@ chatApp.factory('chatService', function($q) {
         chatBus.addListener([2, 0, 0, 0], 's', chatMessageHandler);
         // Handler for new chat messages to self-hosted sessions
         chatBus.addListener([1, 0, 0, 0], 's', chatMessageHandler);
+        chatBus.addListenerForReply([1,0,0,1], 's', doSomethingHandler);
 
         chatBus.acceptSessionListener = function(joinSessionRequest) {
           var joinedChannelMessage = new Message(joinSessionRequest.sender + ' joined the channel', 'Channel');
@@ -159,6 +166,10 @@ chatApp.factory('chatService', function($q) {
   chatService.postCurrentChannel = function(message) {
     if (window.AllJoyn) {
       var chatInterface = chatSession.sessionId === 0 ? [1, 0, 0, 0] : [2, 0, 0, 0];
+      if(chatSession.sessionId !== 0) {
+        chatSession.callMethod(function() { console.log("call success"); }, function() { console.log("call failure"); }, null, null, [2,0,0,1], 's', ["acide reflux"], 's');
+      } else {
+
       chatSession.sendSignal(function() {
         if (chatSession.sessionId === 0) {
           // No need to push the message to the model here,
@@ -171,6 +182,7 @@ chatApp.factory('chatService', function($q) {
       }, function(status) {
         console.log('Failed to post to current channel: ' + status);
       }, null, null, chatInterface, "s", [message.text]);
+    }
     } else {
       channelsModel.currentChannel.messages.push(message);
       broadcastOnRootScope('newMessage', message);
