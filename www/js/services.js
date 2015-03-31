@@ -59,8 +59,17 @@ chatApp.factory('chatService', function($q) {
         console.log('Found bus and connected.');
 
         var doSomethingHandler = function(msgForReply) {
+          console.log('+doSomethinghandler');
           console.log(JSON.stringify(msgForReply));
-          msgForReply.succcess('s', ["BoomShakalaka"]);
+          var getRandomInt = function() {
+            return Math.floor(Math.random() * (100 - 0)) + 0;
+          };
+          var r = getRandomInt();
+          if(r < 50) {
+            msgForReply.replySuccess('s', ["BoomShakalaka"]);
+          } else {
+            msgForReply.replyError('bad luck my friend' + r);
+          }
         };
 
         var chatMessageHandler = function(response) {
@@ -68,7 +77,7 @@ chatApp.factory('chatService', function($q) {
           var message = new Message(response.arguments[0], response.sender);
           channelsModel.currentChannel.messages.push(message);
           broadcastOnRootScope('newMessage', message);
-        }
+        };
         // Handler for new chat messages to sessions hosted by others
         chatBus.addListener([2, 0, 0, 0], 's', chatMessageHandler);
         // Handler for new chat messages to self-hosted sessions
@@ -77,8 +86,10 @@ chatApp.factory('chatService', function($q) {
 
         chatBus.acceptSessionListener = function(joinSessionRequest) {
           var joinedChannelMessage = new Message(joinSessionRequest.sender + ' joined the channel', 'Channel');
-          chatService.postCurrentChannel(joinedChannelMessage);
           joinSessionRequest.response(true);
+          setTimeout(function() {
+          chatService.postCurrentChannel(joinedChannelMessage);
+        }, 500);
         };
 
         deferred.resolve();
@@ -167,7 +178,7 @@ chatApp.factory('chatService', function($q) {
     if (window.AllJoyn) {
       var chatInterface = chatSession.sessionId === 0 ? [1, 0, 0, 0] : [2, 0, 0, 0];
       if(chatSession.sessionId !== 0) {
-        chatSession.callMethod(function() { console.log("call success"); }, function() { console.log("call failure"); }, null, null, [2,0,0,1], 's', ["acide reflux"], 's');
+        chatSession.callMethod(function(msg) { console.log("dosomething call success " + msg.arguments[0]); console.log(JSON.stringify(arguments)); }, function() { console.log("call failure"); }, null, null, [2,0,0,1], 's', ["acide reflux"], 's');
       } else {
 
       chatSession.sendSignal(function() {
