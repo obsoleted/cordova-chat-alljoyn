@@ -178,7 +178,7 @@ chatApp.factory('chatService', function($q) {
     if (window.AllJoyn) {
       var chatInterface = chatSession.sessionId === 0 ? [1, 0, 0, 0] : [2, 0, 0, 0];
       if(chatSession.sessionId !== 0) {
-        chatSession.callMethod(function(msg) { console.log("dosomething call success " + msg.arguments[0]); console.log(JSON.stringify(arguments)); }, function() { console.log("call failure"); }, null, null, [2,0,0,1], 's', ["acide reflux"], 's');
+        chatSession.callMethod(function(msg) { console.log("dosomething call success " + msg.arguments[0]); console.log(JSON.stringify(arguments)); }, function() { console.log("call failure"); }, null, "/chatService", [2,0,0,1], 's', ["acie reflux"], 's');
       } else {
 
       chatSession.sendSignal(function() {
